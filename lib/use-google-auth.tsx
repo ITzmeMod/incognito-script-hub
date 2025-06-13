@@ -41,8 +41,13 @@ export function useGoogleAuth() {
 
   // Load the Google Sign-In SDK
   useEffect(() => {
-    // Skip if already loaded or no client ID
-    if (window.google?.accounts || !GOOGLE_CLIENT_ID || GOOGLE_CLIENT_ID === "YOUR_GOOGLE_CLIENT_ID") {
+    // Skip if already loaded or no client ID or not on client side
+    if (
+      typeof window === "undefined" ||
+      window.google?.accounts ||
+      !GOOGLE_CLIENT_ID ||
+      GOOGLE_CLIENT_ID === "YOUR_GOOGLE_CLIENT_ID"
+    ) {
       setAuthState((prev) => ({ ...prev, isLoading: false }))
       return
     }
@@ -64,13 +69,15 @@ export function useGoogleAuth() {
     document.body.appendChild(script)
 
     return () => {
-      document.body.removeChild(script)
+      if (document.body.contains(script)) {
+        document.body.removeChild(script)
+      }
     }
   }, [])
 
   // Initialize Google Auth
   const initializeGoogleAuth = useCallback(() => {
-    if (!window.google || !GOOGLE_CLIENT_ID) return
+    if (!window.google || !GOOGLE_CLIENT_ID || typeof window === "undefined") return
 
     window.google.accounts.id.initialize({
       client_id: GOOGLE_CLIENT_ID,
@@ -130,6 +137,8 @@ export function useGoogleAuth() {
 
   // Handle the credential response from Google
   const handleCredentialResponse = useCallback((response: any) => {
+    if (typeof window === "undefined") return
+
     try {
       const idToken = response.credential
       const user = parseJwt(idToken)
@@ -171,7 +180,7 @@ export function useGoogleAuth() {
 
   // Render the Google Sign-In button
   const renderSignInButton = useCallback((elementId: string) => {
-    if (!window.google || !GOOGLE_CLIENT_ID) return
+    if (!window.google || !GOOGLE_CLIENT_ID || typeof window === "undefined") return
 
     const element = document.getElementById(elementId)
     if (element) {
@@ -189,6 +198,8 @@ export function useGoogleAuth() {
 
   // Sign out function
   const signOut = useCallback(() => {
+    if (typeof window === "undefined") return
+
     localStorage.removeItem("google_id_token")
     setAuthState({
       isOwner: false,
