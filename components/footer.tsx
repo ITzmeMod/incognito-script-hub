@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   LucideGithub,
   CloudLightningIcon as LucideDiscord,
@@ -18,12 +18,27 @@ export default function Footer() {
   const [editingYoutube, setEditingYoutube] = useState(false)
   const [youtubeUrl, setYoutubeUrl] = useState("https://youtube.com/your-channel")
   const [tempYoutubeUrl, setTempYoutubeUrl] = useState(youtubeUrl)
+  const [isClient, setIsClient] = useState(false)
+
+  // Load saved YouTube URL on component mount
+  useEffect(() => {
+    setIsClient(true)
+    if (typeof window !== "undefined") {
+      const savedUrl = localStorage.getItem("youtube_url")
+      if (savedUrl) {
+        setYoutubeUrl(savedUrl)
+        setTempYoutubeUrl(savedUrl)
+      }
+    }
+  }, [])
 
   const handleSaveYoutube = () => {
     setYoutubeUrl(tempYoutubeUrl)
     setEditingYoutube(false)
-    // In a real app, you'd save this to a database
-    localStorage.setItem("youtube_url", tempYoutubeUrl)
+    // Save to localStorage only on client side
+    if (typeof window !== "undefined") {
+      localStorage.setItem("youtube_url", tempYoutubeUrl)
+    }
   }
 
   const handleCancelEdit = () => {
@@ -31,14 +46,10 @@ export default function Footer() {
     setEditingYoutube(false)
   }
 
-  // Load saved YouTube URL on component mount
-  useState(() => {
-    const savedUrl = localStorage.getItem("youtube_url")
-    if (savedUrl) {
-      setYoutubeUrl(savedUrl)
-      setTempYoutubeUrl(savedUrl)
-    }
-  })
+  // Don't render until client-side hydration is complete
+  if (!isClient) {
+    return null
+  }
 
   return (
     <footer className="mt-16 border-t border-green-900 py-8 px-6">
