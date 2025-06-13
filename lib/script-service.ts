@@ -58,15 +58,15 @@ const initialScripts: Script[] = [
 
 // Load scripts from localStorage or use initial data
 export const loadScripts = (): Script[] => {
+  // Check if we're on the client side
   if (typeof window === "undefined") return initialScripts
 
-  const saved = localStorage.getItem(STORAGE_KEY)
-  if (!saved) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(initialScripts))
-    return initialScripts
-  }
-
   try {
+    const saved = localStorage.getItem(STORAGE_KEY)
+    if (!saved) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(initialScripts))
+      return initialScripts
+    }
     return JSON.parse(saved)
   } catch (e) {
     console.error("Failed to parse saved scripts", e)
@@ -77,7 +77,11 @@ export const loadScripts = (): Script[] => {
 // Save scripts to localStorage
 export const saveScripts = (scripts: Script[]): void => {
   if (typeof window === "undefined") return
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(scripts))
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(scripts))
+  } catch (e) {
+    console.error("Failed to save scripts", e)
+  }
 }
 
 // Update a single script
