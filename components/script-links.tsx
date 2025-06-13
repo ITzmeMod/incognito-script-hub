@@ -19,16 +19,20 @@ export default function ScriptLinks() {
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
   const [scripts, setScripts] = useState<Script[]>([])
   const [editingScript, setEditingScript] = useState<Script | null>(null)
+  const [isClient, setIsClient] = useState(false)
   const { isOwner } = useAuth()
 
   // Load scripts on component mount
   useEffect(() => {
+    setIsClient(true)
     loadScriptsData()
   }, [])
 
   const loadScriptsData = () => {
-    const loadedScripts = loadScripts()
-    setScripts(loadedScripts)
+    if (typeof window !== "undefined") {
+      const loadedScripts = loadScripts()
+      setScripts(loadedScripts)
+    }
   }
 
   const filteredScripts = activeCategory
@@ -72,6 +76,15 @@ export default function ScriptLinks() {
         [field]: value,
       })
     }
+  }
+
+  // Don't render until client-side hydration is complete
+  if (!isClient) {
+    return (
+      <section className="py-12 px-6 max-w-6xl mx-auto">
+        <div className="text-center text-gray-400">Loading...</div>
+      </section>
+    )
   }
 
   return (
