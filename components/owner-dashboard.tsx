@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useAuth } from "@/lib/auth-context"
+import { isGoogleAuthConfigured } from "@/lib/google-auth-config"
 import {
   LucideShield,
   LucideDownload,
@@ -13,6 +14,7 @@ import {
   LucideLock,
   LucideBarChart,
   LucideCode,
+  LucideInfo,
 } from "lucide-react"
 import SecurityInfo from "./security-info"
 import SecurityMonitor from "./security-monitor"
@@ -24,6 +26,74 @@ export default function OwnerDashboard() {
   const { isOwner, user, signOut } = useAuth()
   const [activeTab, setActiveTab] = useState("welcome")
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Show info about Google Auth setup if not configured
+  if (!isGoogleAuthConfigured()) {
+    return (
+      <div className="mt-8 p-6 border border-blue-900 rounded-lg bg-blue-950/20">
+        <div className="flex items-center gap-2 mb-4">
+          <LucideInfo className="h-6 w-6 text-blue-400" />
+          <h3 className="text-2xl font-bold text-blue-400">Owner Features Available</h3>
+        </div>
+
+        <div className="space-y-4">
+          <p className="text-gray-300">
+            This website includes powerful owner features like script management, analytics, and security monitoring. To
+            access these features, you'll need to set up Google authentication.
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card className="bg-black border-green-900">
+              <CardHeader>
+                <CardTitle className="text-green-400 flex items-center gap-2">
+                  <LucideEdit className="h-5 w-5" />
+                  Script Management
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-400 text-sm">
+                  Add, edit, and delete scripts with a powerful management interface.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-black border-green-900">
+              <CardHeader>
+                <CardTitle className="text-green-400 flex items-center gap-2">
+                  <LucideBarChart className="h-5 w-5" />
+                  Analytics Dashboard
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-400 text-sm">
+                  Track visitors, monitor script downloads, and view detailed analytics.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-black border-green-900">
+              <CardHeader>
+                <CardTitle className="text-green-400 flex items-center gap-2">
+                  <LucideLock className="h-5 w-5" />
+                  Security Features
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-400 text-sm">Monitor security events and manage website protection features.</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="p-4 border border-amber-900 rounded-lg bg-amber-950/20">
+            <p className="text-amber-300">
+              <strong>Good news:</strong> Your website works perfectly without these features! The owner dashboard is
+              completely optional and only adds extra functionality.
+            </p>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   if (!isOwner || !user) return null
 
