@@ -42,38 +42,6 @@ export function middleware(request: NextRequest) {
     ].join("; "),
   )
 
-  // Basic rate limiting (IP-based)
-  const ip = request.ip || "unknown"
-  const rateLimit = request.cookies.get("rate_limit_" + ip)?.value
-
-  if (rateLimit) {
-    const { count, timestamp } = JSON.parse(rateLimit)
-    const now = Date.now()
-
-    // Reset after 1 minute
-    if (now - timestamp < 60000) {
-      if (count > 50) {
-        // Increased limit for Google Sign-In
-        return new NextResponse("Too Many Requests", { status: 429 })
-      }
-
-      response.cookies.set("rate_limit_" + ip, JSON.stringify({ count: count + 1, timestamp }), {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-      })
-    } else {
-      response.cookies.set("rate_limit_" + ip, JSON.stringify({ count: 1, timestamp: now }), {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-      })
-    }
-  } else {
-    response.cookies.set("rate_limit_" + ip, JSON.stringify({ count: 1, timestamp: Date.now() }), {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-    })
-  }
-
   return response
 }
 
