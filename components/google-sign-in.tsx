@@ -3,22 +3,15 @@
 import { useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { useGoogleAuth } from "@/lib/use-google-auth"
-import {
-  LucideLogOut,
-  LucideLoader2,
-  LucideRefreshCw,
-  LucideAlertCircle,
-  LucideExternalLink,
-  LucideInfo,
-} from "lucide-react"
-import { isGoogleAuthConfigured, GOOGLE_SETUP_INSTRUCTIONS } from "@/lib/google-auth-config"
+import { LucideLogOut, LucideLoader2, LucideRefreshCw, LucideAlertCircle } from "lucide-react"
+import { isGoogleAuthConfigured } from "@/lib/google-auth-config"
 
 export default function GoogleSignIn() {
   const { isOwner, isLoading, user, error, renderSignInButton, triggerSignIn, signOut, sdkLoaded } = useGoogleAuth()
   const buttonRef = useRef<HTMLDivElement>(null)
   const [buttonRendered, setButtonRendered] = useState(false)
   const [mounted, setMounted] = useState(false)
-  const [showInstructions, setShowInstructions] = useState(false)
+  const [renderAttempts, setRenderAttempts] = useState(0)
 
   // Ensure component is mounted before rendering
   useEffect(() => {
@@ -30,74 +23,39 @@ export default function GoogleSignIn() {
 
   // Attempt to render the button when SDK is ready
   useEffect(() => {
-    if (!mounted || !authConfigured || isOwner || isLoading || !sdkLoaded || buttonRendered) return
+    if (!mounted || !authConfigured || isOwner || isLoading || !sdkLoaded || buttonRendered || renderAttempts >= 3)
+      return
 
     const timer = setTimeout(() => {
       if (buttonRef.current) {
+        console.log(`🎨 Attempting to render button (attempt ${renderAttempts + 1})`)
         const success = renderSignInButton("google-signin-button")
         if (success) {
           setButtonRendered(true)
+          console.log("✅ Button rendered successfully")
+        } else {
+          setRenderAttempts((prev) => prev + 1)
+          console.log(`❌ Button render failed (attempt ${renderAttempts + 1})`)
         }
       }
-    }, 500)
+    }, 1000) // Increased delay
 
     return () => clearTimeout(timer)
-  }, [mounted, authConfigured, isOwner, isLoading, sdkLoaded, renderSignInButton, buttonRendered])
+  }, [mounted, authConfigured, isOwner, isLoading, sdkLoaded, renderSignInButton, buttonRendered, renderAttempts])
 
   // Don't render anything until mounted (prevents hydration issues)
   if (!mounted) {
     return null
   }
 
-  // Show configuration instructions if Google Auth is not set up
   if (!authConfigured) {
     return (
       <div className="space-y-3 p-4">
         <div className="flex items-start gap-2">
-          <LucideInfo className="h-5 w-5 text-blue-400 mt-0.5 flex-shrink-0" />
+          <LucideAlertCircle className="h-5 w-5 text-amber-400 mt-0.5 flex-shrink-0" />
           <div>
-            <p className="text-blue-400 font-medium">Google Authentication Available</p>
-            <p className="text-gray-400 text-sm mt-1">Set up Google OAuth to enable owner authentication.</p>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <Button
-            variant="outline"
-            className="w-full border-blue-500 text-blue-400"
-            onClick={() => setShowInstructions(!showInstructions)}
-          >
-            {showInstructions ? "Hide" : "Show"} Setup Instructions
-          </Button>
-
-          {showInstructions && (
-            <div className="space-y-3 p-3 border border-blue-900 rounded-lg bg-blue-950/20">
-              <h4 className="text-blue-300 font-medium">{GOOGLE_SETUP_INSTRUCTIONS.title}</h4>
-              <ol className="text-xs text-gray-400 space-y-1">
-                {GOOGLE_SETUP_INSTRUCTIONS.steps.map((step, index) => (
-                  <li key={index} className="flex gap-2">
-                    <span className="text-blue-400 font-mono">{index + 1}.</span>
-                    <span>{step}</span>
-                  </li>
-                ))}
-              </ol>
-
-              <Button
-                variant="outline"
-                className="w-full border-blue-500 text-blue-400 mt-3"
-                onClick={() => window.open("https://console.cloud.google.com/apis/credentials", "_blank")}
-              >
-                <LucideExternalLink className="h-4 w-4 mr-2" />
-                Open Google Cloud Console
-              </Button>
-            </div>
-          )}
-
-          <div className="p-3 border border-amber-900 rounded-lg bg-amber-950/20">
-            <p className="text-amber-300 text-sm">
-              <strong>Note:</strong> The website works perfectly without Google authentication. Owner features are
-              optional and only needed if you want secure admin access.
-            </p>
+            <p className="text-amber-400 font-medium">Google Authentication Not Configured</p>
+            <p className="text-gray-400 text-sm mt-1">Please check the Google Client ID configuration.</p>
           </div>
         </div>
       </div>
@@ -108,7 +66,7 @@ export default function GoogleSignIn() {
     return (
       <div className="flex items-center justify-center p-4">
         <LucideLoader2 className="h-5 w-5 animate-spin text-green-400" />
-        <span className="ml-2 text-green-400">Loading...</span>
+        <span className="ml-2 text-green-400">Loading authentication...</span>
       </div>
     )
   }
@@ -148,6 +106,7 @@ export default function GoogleSignIn() {
           <div>
             <p className="text-green-400 font-medium">{user.name}</p>
             <p className="text-gray-400 text-sm">{user.email}</p>
+            <p className="text-green-300 text-xs">✅ Owner Access</p>
           </div>
         </div>
         <Button
@@ -166,9 +125,10 @@ export default function GoogleSignIn() {
   return (
     <div className="space-y-3">
       <p className="text-gray-400 text-sm text-center">Sign in with Google to access owner features</p>
+      <p className="text-blue-400 text-xs text-center">Owner: fortuitocliffordgwapo@gmail.com</p>
 
       {/* Google Sign-In Button Container */}
-      <div id="google-signin-button" ref={buttonRef} className="w-full min-w-[200px]">
+      <div id="google-signin-button" ref={buttonRef} className="w-full min-w-[200px] flex justify-center">
         {/* This div will be populated by Google SDK */}
       </div>
 
@@ -182,10 +142,30 @@ export default function GoogleSignIn() {
 
       {/* Fallback button */}
       {sdkLoaded && !buttonRendered && (
-        <Button variant="outline" className="w-full border-blue-500 text-blue-400" onClick={triggerSignIn}>
-          🔐 Sign in with Google
-        </Button>
+        <div className="space-y-2">
+          <Button variant="outline" className="w-full border-blue-500 text-blue-400" onClick={triggerSignIn}>
+            🔐 Sign in with Google (Alternative)
+          </Button>
+          <Button
+            variant="outline"
+            className="w-full border-green-500 text-green-400"
+            onClick={() => {
+              setButtonRendered(false)
+              setRenderAttempts(0)
+            }}
+          >
+            <LucideRefreshCw className="h-4 w-4 mr-2" />
+            Retry Button Render
+          </Button>
+        </div>
       )}
+
+      {/* Debug info */}
+      <div className="text-xs text-gray-500 text-center space-y-1">
+        <p>SDK: {sdkLoaded ? "✅ Loaded" : "❌ Loading..."}</p>
+        <p>Button: {buttonRendered ? "✅ Rendered" : "❌ Not rendered"}</p>
+        <p>Attempts: {renderAttempts}/3</p>
+      </div>
     </div>
   )
 }

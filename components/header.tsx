@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import GoogleSignIn from "./google-sign-in"
 import { useAuth } from "@/lib/auth-context"
+import { isGoogleAuthConfigured } from "@/lib/google-auth-config"
 
 export default function Header() {
   const [mounted, setMounted] = useState(false)
@@ -41,6 +42,9 @@ export default function Header() {
     )
   }
 
+  // Check if Google Auth is configured
+  const authConfigured = isGoogleAuthConfigured()
+
   return (
     <header className="p-6 flex justify-between items-center">
       <div className="flex items-center gap-2">
@@ -58,35 +62,48 @@ export default function Header() {
           </ul>
         </nav>
 
-        {isLoading ? (
+        {/* Show auth UI if Google Auth is configured */}
+        {authConfigured ? (
+          <>
+            {isLoading ? (
+              <Button variant="outline" size="icon" className="border-green-500" disabled>
+                <LucideUser className="h-5 w-5 text-green-400" />
+              </Button>
+            ) : isOwner && user ? (
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <img
+                    src={user.picture || "/placeholder.svg"}
+                    alt={user.name || "Owner"}
+                    className="w-8 h-8 rounded-full border border-green-500"
+                    referrerPolicy="no-referrer"
+                  />
+                  <div className="hidden md:block">
+                    <span className="text-sm text-green-400 block">Owner</span>
+                    <span className="text-xs text-gray-400">{user.name}</span>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="icon" className="border-green-500">
+                    <LucideUser className="h-5 w-5 text-green-400" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="bg-black border border-green-500 min-w-[300px]">
+                  <div className="p-2">
+                    <GoogleSignIn />
+                  </div>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </>
+        ) : (
+          // Show a simple user icon when auth is not configured
           <Button variant="outline" size="icon" className="border-green-500" disabled>
             <LucideUser className="h-5 w-5 text-green-400" />
           </Button>
-        ) : isOwner && user ? (
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
-              <img
-                src={user.picture || "/placeholder.svg"}
-                alt={user.name || "Owner"}
-                className="w-8 h-8 rounded-full border border-green-500"
-                referrerPolicy="no-referrer"
-              />
-              <span className="text-sm text-green-400 hidden md:inline">Owner</span>
-            </div>
-          </div>
-        ) : (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon" className="border-green-500">
-                <LucideUser className="h-5 w-5 text-green-400" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="bg-black border border-green-500 min-w-[250px]">
-              <div className="p-2">
-                <GoogleSignIn />
-              </div>
-            </DropdownMenuContent>
-          </DropdownMenu>
         )}
       </div>
     </header>
