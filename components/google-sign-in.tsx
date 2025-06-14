@@ -38,7 +38,7 @@ export default function GoogleSignIn() {
           console.log(`❌ Button render failed (attempt ${renderAttempts + 1})`)
         }
       }
-    }, 1000) // Increased delay
+    }, 1000)
 
     return () => clearTimeout(timer)
   }, [mounted, authConfigured, isOwner, isLoading, sdkLoaded, renderSignInButton, buttonRendered, renderAttempts])
@@ -66,7 +66,7 @@ export default function GoogleSignIn() {
     return (
       <div className="flex items-center justify-center p-4">
         <LucideLoader2 className="h-5 w-5 animate-spin text-green-400" />
-        <span className="ml-2 text-green-400">Loading authentication...</span>
+        <span className="ml-2 text-green-400">Loading...</span>
       </div>
     )
   }
@@ -123,10 +123,7 @@ export default function GoogleSignIn() {
   }
 
   return (
-    <div className="space-y-3">
-      <p className="text-gray-400 text-sm text-center">Sign in with Google to access owner features</p>
-      <p className="text-blue-400 text-xs text-center">Owner: fortuitocliffordgwapo@gmail.com</p>
-
+    <div className="p-2">
       {/* Google Sign-In Button Container */}
       <div id="google-signin-button" ref={buttonRef} className="w-full min-w-[200px] flex justify-center">
         {/* This div will be populated by Google SDK */}
@@ -140,11 +137,11 @@ export default function GoogleSignIn() {
         </div>
       )}
 
-      {/* Fallback button */}
-      {sdkLoaded && !buttonRendered && (
+      {/* Fallback button - only show if button failed to render after multiple attempts */}
+      {sdkLoaded && !buttonRendered && renderAttempts >= 3 && (
         <div className="space-y-2">
           <Button variant="outline" className="w-full border-blue-500 text-blue-400" onClick={triggerSignIn}>
-            🔐 Sign in with Google (Alternative)
+            🔐 Sign in with Google
           </Button>
           <Button
             variant="outline"
@@ -155,17 +152,10 @@ export default function GoogleSignIn() {
             }}
           >
             <LucideRefreshCw className="h-4 w-4 mr-2" />
-            Retry Button Render
+            Retry
           </Button>
         </div>
       )}
-
-      {/* Debug info */}
-      <div className="text-xs text-gray-500 text-center space-y-1">
-        <p>SDK: {sdkLoaded ? "✅ Loaded" : "❌ Loading..."}</p>
-        <p>Button: {buttonRendered ? "✅ Rendered" : "❌ Not rendered"}</p>
-        <p>Attempts: {renderAttempts}/3</p>
-      </div>
     </div>
   )
 }
