@@ -11,7 +11,7 @@ export function middleware(request: NextRequest) {
   headers.set("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload")
 
   // Prevent clickjacking
-  headers.set("X-Frame-Options", "DENY")
+  headers.set("X-Frame-Options", "SAMEORIGIN")
 
   // XSS Protection
   headers.set("X-XSS-Protection", "1; mode=block")
@@ -20,15 +20,26 @@ export function middleware(request: NextRequest) {
   headers.set("X-Content-Type-Options", "nosniff")
 
   // Referrer Policy
-  headers.set("Referrer-Policy", "no-referrer")
+  headers.set("Referrer-Policy", "strict-origin-when-cross-origin")
 
-  // Permissions Policy (formerly Feature Policy)
-  headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=(), interest-cohort=()")
+  // Permissions Policy
+  headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
 
-  // Content Security Policy
+  // More permissive CSP for Google Sign-In
   headers.set(
     "Content-Security-Policy",
-    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.google.com https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://api.github.com; frame-src 'self' https://www.google.com;",
+    [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com https://*.googleapis.com https://www.google.com https://www.gstatic.com",
+      "style-src 'self' 'unsafe-inline' https://accounts.google.com https://fonts.googleapis.com",
+      "font-src 'self' https://fonts.gstatic.com",
+      "img-src 'self' data: https: blob:",
+      "connect-src 'self' https://accounts.google.com https://*.googleapis.com",
+      "frame-src 'self' https://accounts.google.com https://www.google.com",
+      "object-src 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+    ].join("; "),
   )
 
   // Basic rate limiting (IP-based)
@@ -41,8 +52,8 @@ export function middleware(request: NextRequest) {
 
     // Reset after 1 minute
     if (now - timestamp < 60000) {
-      if (count > 30) {
-        // 30 requests per minute
+      if (count > 50) {
+        // Increased limit for Google Sign-In
         return new NextResponse("Too Many Requests", { status: 429 })
       }
 
