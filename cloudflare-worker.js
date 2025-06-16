@@ -2,7 +2,7 @@
 // Deploy this to Cloudflare Workers for backend validation
 
 // Your Google Client ID
-const GOOGLE_CLIENT_ID = "http://1039114733186-g6t8o74124davbf2v4cud6ldtjfvo9gi.apps.googleusercontent.com/"
+const GOOGLE_CLIENT_ID = "1039114733186-g6t8o74124davbf2v4cud6ldtjfvo9gi.apps.googleusercontent.com"
 // The owner's email address
 const OWNER_EMAIL = "fortuitocliffordgwapo@gmail.com"
 
