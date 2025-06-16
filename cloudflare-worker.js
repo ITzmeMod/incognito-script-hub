@@ -2,9 +2,9 @@
 // Deploy this to Cloudflare Workers for backend validation
 
 // Your Google Client ID
-const GOOGLE_CLIENT_ID = "YOUR_GOOGLE_CLIENT_ID"
+const GOOGLE_CLIENT_ID = "http://1039114733186-g6t8o74124davbf2v4cud6ldtjfvo9gi.apps.googleusercontent.com/"
 // The owner's email address
-const OWNER_EMAIL = "your-email@gmail.com"
+const OWNER_EMAIL = "fortuitocliffordgwapo@gmail.com"
 
 // Google's public keys endpoint
 const GOOGLE_CERTS_URL = "https://www.googleapis.com/oauth2/v3/certs"
